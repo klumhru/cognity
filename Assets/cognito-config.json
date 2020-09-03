@@ -1,0 +1,16 @@
+{
+  "cognito": {
+    "sensitive": false,
+    "type": [
+      "object",
+      {
+        "identity_pool_id": "string",
+        "user_pool_id": "string"
+      }
+    ],
+    "value": {
+      "identity_pool_id": "us-east-1:8f2db066-9f77-4f71-a357-877a1a29dd1f",
+      "user_pool_id": "us-east-1_DB1KPdvAM"
+    }
+  }
+}
