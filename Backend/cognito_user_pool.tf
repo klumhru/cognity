@@ -1,5 +1,30 @@
 resource "aws_cognito_user_pool" "cognity" {
   name = "${local.name_prefix}-user-pool"
+
+  username_attributes      = ["email"]
+  auto_verified_attributes = ["email"]
+
+  password_policy {
+    minimum_length    = 8
+    require_lowercase = true
+    require_symbols   = true
+  }
+
+  mfa_configuration = "OPTIONAL"
+  software_token_mfa_configuration {
+    enabled = true
+  }
+
+  schema {
+    name                = "email"
+    required            = true
+    attribute_data_type = "String"
+  }
+  schema {
+    name                = "nickname"
+    required            = true
+    attribute_data_type = "String"
+  }
 }
 
 resource "aws_cognito_user_pool_client" "players" {

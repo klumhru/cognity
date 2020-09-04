@@ -44,7 +44,7 @@ terraform plan
 terraform apply
 
 # 3. Output the outputs into a json file that the client can read.
-terraform output -json > ../Assets/cognito-config.json
+terraform output -json > ../Assets/cognity.json
 ```
 
 # A note on sensitive data
