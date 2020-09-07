@@ -15,7 +15,12 @@ namespace Cognity.Demo {
     Recover,
     RecoverConfirm
   }
-  public class ControllerUI : MonoBehaviour {
+  public class ControllerUI : MonoBehaviour,
+                              IObserver<RecoverResult>,
+                              IObserver<RefreshResult>,
+                              IObserver<RegistrationResult>,
+                              IObserver<ConfirmResult>,
+                              IObserver<LoginResult> {
     public SelectedPanel StartPanel = SelectedPanel.Refresh;
     private GameObject _current;
     private const string SHOW_ANIM_NAME = "Show";
@@ -56,106 +61,16 @@ namespace Cognity.Demo {
       foreach (var k in Panels) {
         k.Value.gameObject.SetActive(false);
       }
-      Confirm.QueuedEvents.AddListener(OnConfirmEvent);
-      Register.QueuedEvents.AddListener(OnRegisterEvent);
-      Refresh.QueuedEvents.AddListener(OnRefreshEvent);
-      Login.QueuedEvents.AddListener(OnLoginEvent);
-      Recover.QueuedEvents.AddListener(OnRecoverEvent);
+      Confirm.Subscribe(this);
+      Register.Subscribe(this);
+      Refresh.Subscribe(this);
+      Login.Subscribe(this);
+      Recover.Subscribe(this);
       // Profile.QueuedEvents.AddListener(OnProfileEvent);
 
       SelectPanel(StartPanel);
       if (StartPanel == SelectedPanel.Refresh) {
         RefreshUI.RefreshAuth();
-      }
-    }
-
-    private void OnRecoverEvent(RecoverResult res) {
-      switch (res.Status) {
-        case RecoverResult.RecoverStatus.Confirm:
-          SelectPanel(SelectedPanel.RecoverConfirm);
-          RecoverConfirmUI.Reset(res.Username);
-          break;
-        case RecoverResult.RecoverStatus.Success:
-          RecoverConfirmUI.Reset(res.Username);
-          SelectPanel(SelectedPanel.Login);
-          LoginUI.Reset(res.Username);
-          LoginUI.ShowError("Password reset, please sign in");
-          break;
-        case RecoverResult.RecoverStatus.Error:
-          Debug.LogWarning(res.ErrorMessage);
-          RecoverConfirmUI.SetErrors(res.ErrorMessage);
-          break;
-      }
-    }
-
-    private void OnRefreshEvent(RefreshResult res) {
-      switch (res.Status) {
-        case RefreshResult.RefreshStatus.Error:
-          Debug.LogWarning(res.ErrorMessage);
-          SelectPanel(SelectedPanel.Login);
-          LoginUI.Reset("");
-          break;
-        case RefreshResult.RefreshStatus.Success:
-          SelectPanel(SelectedPanel.Profile);
-          break;
-        default:
-          throw new ArgumentException($"status {res.Status} unknown");
-      }
-    }
-
-    private void OnRegisterEvent(RegistrationResult res) {
-      switch (res.Status) {
-        case RegistrationResult.RegistrationStatus.Error:
-          Debug.LogWarning(res.ErrorMessage);
-          RegistrationUI.ShowError(res.ErrorMessage);
-          break;
-        case RegistrationResult.RegistrationStatus.Success:
-          SelectPanel(SelectedPanel.Confirm);
-          ConfirmationUI.Reset(res.Username);
-          break;
-        default:
-          throw new ArgumentException($"status {res.Status} unknown");
-      }
-    }
-
-    private void OnConfirmEvent(ConfirmResult res) {
-      switch (res.Status) {
-        case ConfirmResult.ConfirmStatus.Error:
-          SelectPanel(SelectedPanel.Confirm);
-          ConfirmationUI.ShowError(res.ErrorMessage);
-          break;
-        case ConfirmResult.ConfirmStatus.Resent:
-          SelectPanel(SelectedPanel.Confirm);
-          ConfirmationUI.ShowError("New code sent");
-          break;
-        case ConfirmResult.ConfirmStatus.Success:
-          ConfirmationUI.Reset("");
-          SelectPanel(SelectedPanel.Login);
-          LoginUI.Reset(res.Username);
-          LoginUI.ShowError("User confirmed, please sign in");
-          break;
-      }
-    }
-
-    private void OnLoginEvent(LoginResult res) {
-      switch (res.Status) {
-        case LoginResult.LoginStatus.Success:
-          SelectPanel(SelectedPanel.Profile);
-          break;
-        case LoginResult.LoginStatus.Unconfirmed:
-          SelectPanel(SelectedPanel.Confirm);
-          Confirm.ResendConfirmCode(res.Username);
-          ConfirmationUI.Reset(res.Username);
-          break;
-        case LoginResult.LoginStatus.Error:
-          Debug.LogWarning(res.ErrorMessage);
-          LoginUI.ShowError(res.ErrorMessage);
-          break;
-        case LoginResult.LoginStatus.SignedOut:
-          LoginUI.ShowError("Signed out");
-          SelectPanel(SelectedPanel.Login);
-          LoginUI.Reset("");
-          break;
       }
     }
 
@@ -183,6 +98,104 @@ namespace Cognity.Demo {
     public void ButtonLoginRecoverClick() {
       SelectPanel(SelectedPanel.Recover);
       RecoverUI.Reset("");
+    }
+
+    public void OnCompleted() {
+      throw new NotImplementedException();
+    }
+
+    public void OnError(Exception error) {
+      throw new NotImplementedException();
+    }
+
+    public void OnNext(RecoverResult res) {
+      switch (res.Status) {
+        case RecoverResult.RecoverStatus.Confirm:
+          SelectPanel(SelectedPanel.RecoverConfirm);
+          RecoverConfirmUI.Reset(res.Username);
+          break;
+        case RecoverResult.RecoverStatus.Success:
+          RecoverConfirmUI.Reset(res.Username);
+          SelectPanel(SelectedPanel.Login);
+          LoginUI.Reset(res.Username);
+          LoginUI.ShowError("Password reset, please sign in");
+          break;
+        case RecoverResult.RecoverStatus.Error:
+          Debug.LogWarning(res.ErrorMessage);
+          RecoverConfirmUI.SetErrors(res.ErrorMessage);
+          break;
+      }
+    }
+
+    public void OnNext(RefreshResult res) {
+      switch (res.Status) {
+        case RefreshResult.RefreshStatus.Error:
+          Debug.LogWarning(res.ErrorMessage);
+          SelectPanel(SelectedPanel.Login);
+          LoginUI.Reset("");
+          break;
+        case RefreshResult.RefreshStatus.Success:
+          SelectPanel(SelectedPanel.Profile);
+          break;
+        default:
+          throw new ArgumentException($"status {res.Status} unknown");
+      }
+    }
+
+    public void OnNext(RegistrationResult res) {
+      switch (res.Status) {
+        case RegistrationResult.RegistrationStatus.Error:
+          Debug.LogWarning(res.ErrorMessage);
+          RegistrationUI.ShowError(res.ErrorMessage);
+          break;
+        case RegistrationResult.RegistrationStatus.Success:
+          SelectPanel(SelectedPanel.Confirm);
+          ConfirmationUI.Reset(res.Username);
+          break;
+        default:
+          throw new ArgumentException($"status {res.Status} unknown");
+      }
+    }
+
+    public void OnNext(ConfirmResult res) {
+      switch (res.Status) {
+        case ConfirmResult.ConfirmStatus.Error:
+          SelectPanel(SelectedPanel.Confirm);
+          ConfirmationUI.ShowError(res.ErrorMessage);
+          break;
+        case ConfirmResult.ConfirmStatus.Resent:
+          SelectPanel(SelectedPanel.Confirm);
+          ConfirmationUI.ShowError("New code sent");
+          break;
+        case ConfirmResult.ConfirmStatus.Success:
+          ConfirmationUI.Reset("");
+          SelectPanel(SelectedPanel.Login);
+          LoginUI.Reset(res.Username);
+          LoginUI.ShowError("User confirmed, please sign in");
+          break;
+      }
+    }
+
+    public void OnNext(LoginResult res) {
+      switch (res.Status) {
+        case LoginResult.LoginStatus.Success:
+          SelectPanel(SelectedPanel.Profile);
+          break;
+        case LoginResult.LoginStatus.Unconfirmed:
+          SelectPanel(SelectedPanel.Confirm);
+          Confirm.ResendConfirmCode(res.Username);
+          ConfirmationUI.Reset(res.Username);
+          break;
+        case LoginResult.LoginStatus.Error:
+          Debug.LogWarning(res.ErrorMessage);
+          LoginUI.ShowError(res.ErrorMessage);
+          break;
+        case LoginResult.LoginStatus.SignedOut:
+          LoginUI.ShowError("Signed out");
+          SelectPanel(SelectedPanel.Login);
+          LoginUI.Reset("");
+          break;
+      }
     }
   }
 }

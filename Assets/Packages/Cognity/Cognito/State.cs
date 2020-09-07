@@ -8,7 +8,11 @@ using Amazon.Extensions.CognitoAuthentication;
 using UnityEngine;
 
 namespace Cognity.Cognito {
-  public class State : MonoBehaviour {
+  public class State : MonoBehaviour,
+                       IObserver<LoginResult>,
+                       IObserver<RefreshResult>,
+                       IObserver<ConfirmResult>,
+                       IObserver<RegistrationResult> {
     private AmazonCognitoIdentityProviderClient _provider;
     public AmazonCognitoIdentityProviderClient Provider { get => _provider; }
     private CognitoUserPool _userPool;
@@ -71,21 +75,10 @@ namespace Cognity.Cognito {
     }
     // Start is called before the first frame update
     void Start() {
-      Login.QueuedEvents.AddListener(HandleLoginEvent);
-      Refresh.QueuedEvents.AddListener(HandleRefreshEvent);
-      Confirm.QueuedEvents.AddListener(HandleConfirmEvent);
-      Register.QueuedEvents.AddListener(HandleRegisterEvent);
-    }
-
-    private void HandleRegisterEvent(RegistrationResult res) {
-      ResetState();
-      switch (res.Status) {
-        case RegistrationResult.RegistrationStatus.Error:
-          break;
-        case RegistrationResult.RegistrationStatus.Success:
-          Username = res.Username;
-          break;
-      }
+      Login.Subscribe(this);
+      Refresh.Subscribe(this);
+      Confirm.Subscribe(this);
+      Register.Subscribe(this);
     }
 
     private void ResetState() {
@@ -95,20 +88,15 @@ namespace Cognity.Cognito {
       RefreshToken = "";
     }
 
-    private void HandleConfirmEvent(ConfirmResult res) {
-      if (res.Status == ConfirmResult.ConfirmStatus.Success) {
-
-      }
+    public void OnCompleted() {
+      throw new NotImplementedException();
     }
 
-    private void HandleRefreshEvent(RefreshResult res) {
-      if (res.Status == RefreshResult.RefreshStatus.Success) {
-        AccessToken = res.Response.AuthenticationResult.AccessToken;
-        IdToken = res.Response.AuthenticationResult.IdToken;
-      }
+    public void OnError(Exception error) {
+      throw new NotImplementedException();
     }
 
-    private void HandleLoginEvent(LoginResult res) {
+    public void OnNext(LoginResult res) {
       switch (res.Status) {
         case LoginResult.LoginStatus.Success:
           AccessToken = res.Response.AuthenticationResult.AccessToken;
@@ -119,6 +107,30 @@ namespace Cognity.Cognito {
           break;
         case LoginResult.LoginStatus.SignedOut:
           ResetState();
+          break;
+      }
+    }
+
+    public void OnNext(RefreshResult res) {
+      if (res.Status == RefreshResult.RefreshStatus.Success) {
+        AccessToken = res.Response.AuthenticationResult.AccessToken;
+        IdToken = res.Response.AuthenticationResult.IdToken;
+      }
+    }
+
+    public void OnNext(ConfirmResult res) {
+      if (res.Status == ConfirmResult.ConfirmStatus.Success) {
+
+      }
+    }
+
+    public void OnNext(RegistrationResult res) {
+      ResetState();
+      switch (res.Status) {
+        case RegistrationResult.RegistrationStatus.Error:
+          break;
+        case RegistrationResult.RegistrationStatus.Success:
+          Username = res.Username;
           break;
       }
     }
