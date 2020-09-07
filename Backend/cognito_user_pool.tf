@@ -5,9 +5,9 @@ resource "aws_cognito_user_pool" "cognity" {
   auto_verified_attributes = ["email"]
 
   password_policy {
-    minimum_length    = 8
-    require_lowercase = true
-    require_symbols   = true
+    minimum_length                   = 8
+    require_lowercase                = true
+    require_symbols                  = true
     temporary_password_validity_days = 7
   }
 
