@@ -25,6 +25,34 @@ resource "aws_iam_role" "players" {
   assume_role_policy = data.aws_iam_policy_document.players_assume.json
 }
 
+data "aws_iam_policy_document" "player_preferences" {
+  statement {
+    sid    = "editprefs"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:Query"
+    ]
+    resources = [aws_dynamodb_table.preferences.arn]
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "dynamodb:LeadingKeys"
+      values   = ["$${cognito-identity.amazonaws.com:sub}"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "player_preferences" {
+  policy = data.aws_iam_policy_document.player_preferences.json
+  name   = "${local.name_prefix}-player-preferences"
+}
+
+resource "aws_iam_role_policy_attachment" "player_preferences" {
+  role       = aws_iam_role.players.name
+  policy_arn = aws_iam_policy.player_preferences.arn
+}
+
 data "aws_iam_policy_document" "administrators_assume" {
   statement {
     sid    = "administratorsassume"
