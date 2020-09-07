@@ -8,6 +8,7 @@ resource "aws_cognito_user_pool" "cognity" {
     minimum_length    = 8
     require_lowercase = true
     require_symbols   = true
+    temporary_password_validity_days = 7
   }
 
   mfa_configuration = "OPTIONAL"
@@ -19,11 +20,19 @@ resource "aws_cognito_user_pool" "cognity" {
     name                = "email"
     required            = true
     attribute_data_type = "String"
+    string_attribute_constraints {
+      max_length = 512
+      min_length = 3
+    }
   }
   schema {
     name                = "nickname"
     required            = true
     attribute_data_type = "String"
+    string_attribute_constraints {
+      max_length = 512
+      min_length = 3
+    }
   }
 }
 

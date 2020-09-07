@@ -14,3 +14,11 @@ resource "aws_cognito_identity_pool" "cognity" {
     server_side_token_check = false
   }
 }
+
+resource "aws_cognito_identity_pool_roles_attachment" "cognity" {
+  identity_pool_id = aws_cognito_identity_pool.cognity.id
+  roles = {
+    "authenticated" = aws_iam_role.authenticated_user.arn
+    "unauthenticated" = aws_iam_role.unauthenticated_user.arn
+  }
+}
