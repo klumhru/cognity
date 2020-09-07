@@ -1,16 +1,56 @@
-﻿using Amazon;
-using Amazon.CognitoIdentityProvider;
-using Amazon.Extensions.CognitoAuthentication;
-using UnityEngine;
+﻿using System;
 
-public class Confirm : MonoBehaviour {
-  private AmazonCognitoIdentityProviderClient _provider;
-  private CognitoUserPool _userPool;
-  private CognitoUser _user;
+namespace Cognity.Cognito {
+  public struct ConfirmResult {
+    public enum ConfirmStatus {
+      Success,
+      Error,
+      Resent
+    }
+    public ConfirmStatus Status;
+    public string ErrorMessage;
+    public Exception InnerException;
+    public string Username;
+  }
+  public class Confirm : AWSReactiveBehaviour<ConfirmResult> {
+    public State State;
 
-  public static Confirm Current;
+    public override void Awake() {
+      base.Awake();
+    }
 
-  void Awake() {
-    Current = this;
+    public void ConfirmCode(string username, string code) {
+      State.SetUser(username);
+      try {
+        State.User.ConfirmSignUpAsync(code, false).ConfigureAwait(false);
+        EnqueueMessage(new ConfirmResult {
+          Status = ConfirmResult.ConfirmStatus.Success,
+          Username = username,
+        });
+      } catch (Exception ex) {
+        EnqueueMessage(new ConfirmResult {
+          Status = ConfirmResult.ConfirmStatus.Error,
+          ErrorMessage = ex.Message,
+          InnerException = ex,
+          Username = username
+        });
+      }
+    }
+
+    internal async void ResendConfirmCode(string username) {
+      State.SetUser(username);
+      try {
+        await State.User.ResendConfirmationCodeAsync().ConfigureAwait(false);
+        EnqueueMessage(new ConfirmResult {
+          Status = ConfirmResult.ConfirmStatus.Resent
+        });
+      } catch (Exception ex) {
+        EnqueueMessage(new ConfirmResult {
+          ErrorMessage = ex.Message,
+          InnerException = ex,
+          Status = ConfirmResult.ConfirmStatus.Error
+        });
+      }
+    }
   }
 }

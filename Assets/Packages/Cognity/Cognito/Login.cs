@@ -1,34 +1,34 @@
 ﻿using UnityEngine;
-using System;
 using Amazon;
-using Amazon.CognitoIdentity;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.CognitoAuthentication;
-using Amazon.Runtime;
+using Amazon.Runtime.Internal;
+using System;
 using Amazon.CognitoIdentityProvider.Model;
+using Amazon.CognitoIdentity;
 
 namespace Cognity.Cognito {
-  public class Login : AWSReactiveBehaviour<AuthFlowResponse> {
-    private AmazonCognitoIdentityProviderClient _provider;
-    private CognitoUserPool _userPool;
-    private CognitoUser _user;
 
-    public Login Current;
-
-    public override void Awake() {
-      base.Awake();
-      Current = this;
+  public struct LoginResult {
+    public enum LoginStatus {
+      Success,
+      Error,
+      Unconfirmed,
+      SignedOut
     }
+    public AuthFlowResponse Response;
+    public LoginStatus Status;
+    public string ErrorMessage;
+    public Exception InnerException;
+    public InitiateSrpAuthRequest Request;
+    public string Username;
+    internal CognitoAWSCredentials Credentials;
+  }
 
+  public class Login : AWSReactiveBehaviour<LoginResult> {
+    public State State;
     // Start is called before the first frame update
     void Start() {
-      _provider =
-          new AmazonCognitoIdentityProviderClient(new Amazon.Runtime.AnonymousAWSCredentials(),
-          RegionEndpoint.GetBySystemName(Configuration.Current.AWS.Region));
-      _userPool = new CognitoUserPool(
-        Configuration.Current.Cognito.UserPoolId,
-        Configuration.Current.Cognito.PlayerUserPoolClientId,
-        _provider);
     }
 
     private void OnResult(AuthFlowResponse res) {
@@ -36,13 +36,55 @@ namespace Cognity.Cognito {
     }
 
     public async void Authenticate(string username, string password) {
-      _user = new CognitoUser(username, Configuration.Current.Cognito.PlayerUserPoolClientId, _userPool, _provider);
+      State.SetUser(username);
       var request = new InitiateSrpAuthRequest() {
         Password = password
       };
+      try {
+        var response = await State.User.StartWithSrpAuthAsync(request).ConfigureAwait(false);
+        var credentials = State.User.GetCognitoAWSCredentials(State.UserPool.PoolID, State.Endpoint);
+        EnqueueMessage(new LoginResult {
+          Response = response,
+          Status = LoginResult.LoginStatus.Success,
+          Username = username,
+          Credentials = credentials
+        });
+      } catch (HttpErrorResponseException ex) {
+        EnqueueMessage(new LoginResult {
+          InnerException = ex,
+          ErrorMessage = ex.Message,
+          Status = LoginResult.LoginStatus.Error
+        });
+      } catch (UserNotConfirmedException ex) {
+        EnqueueMessage(new LoginResult {
+          Request = request,
+          Username = username,
+          InnerException = ex,
+          ErrorMessage = ex.Message,
+          Status = LoginResult.LoginStatus.Unconfirmed,
+        });
+      } catch (Exception ex) {
+        EnqueueMessage(new LoginResult {
+          InnerException = ex,
+          ErrorMessage = ex.Message,
+          Status = LoginResult.LoginStatus.Error
+        });
+      }
+    }
 
-      var response = await _user.StartWithSrpAuthAsync(request).ConfigureAwait(false);
-      EnqueueMessage(response);
+    public void Signout() {
+      try {
+        State.User.SignOut();
+        EnqueueMessage(new LoginResult {
+          Status = LoginResult.LoginStatus.SignedOut,
+        });
+      } catch (Exception ex) {
+        EnqueueMessage(new LoginResult {
+          Status = LoginResult.LoginStatus.Error,
+          InnerException = ex,
+          ErrorMessage = ex.Message
+        });
+      }
     }
   }
 }

@@ -2,43 +2,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 using Cognity.Cognito;
 
-public class RegisterUI : MonoBehaviour {
-  public TMP_InputField Username;
-  public TMP_InputField Email;
-  public TMP_InputField Password;
-  public TMP_Text Errors;
-  // Start is called before the first frame update
-  void Start() {
-    Cognity.Cognito.Register.Current.QueuedEvents.AddListener(OnRegisterEvent);
-  }
+namespace Cognity.Demo {
+  public class RegisterUI : MonoBehaviour {
+    public ControllerUI Controller;
+    public TMP_InputField Username;
+    public TMP_InputField Email;
+    public TMP_InputField Password;
+    public TMP_Text Errors;
 
-  void OnRegisterEvent(RegistrationResult res) {
-    Errors.text = string.Empty;
+    public Register Register;
 
-    switch (res.Status) {
-      case RegistrationResult.RegistrationStatus.Error:
-        Errors.text = res.ErrorMessage;
-        break;
+    void Start() {
     }
-  }
 
-  public void Register() {
-    Cognity.Cognito.Register.Current.SignUp(
-      Email.text,
-      Password.text,
-      new Dictionary<string, string>{
-        {"email", Email.text},
-        {"nickname", Username.text},
-      }
-    );
-  }
+    public void ShowError(string message) {
+      Errors.text = message;
+    }
 
-  // Update is called once per frame
-  void Update() {
+    public void RegisterClick() {
+      Errors.text = string.Empty;
+      Register.SignUp(
+        Email.text,
+        Password.text,
+        new Dictionary<string, string>{
+          {"email", Email.text},
+          {"nickname", Username.text},
+        }
+      );
+    }
 
+    internal void Reset(string username) {
+      Errors.text = "";
+      Username.text = "";
+      Email.text = username;
+      Password.text = "";
+    }
   }
 }
