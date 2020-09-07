@@ -64,6 +64,9 @@ namespace Cognity.Demo {
       // Profile.QueuedEvents.AddListener(OnProfileEvent);
 
       SelectPanel(StartPanel);
+      if (StartPanel == SelectedPanel.Refresh) {
+        RefreshUI.RefreshAuth();
+      }
     }
 
     private void OnRecoverEvent(RecoverResult res) {

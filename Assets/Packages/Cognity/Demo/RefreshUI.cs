@@ -11,7 +11,7 @@ namespace Cognity.Demo {
     public ControllerUI Controller;
     public State State;
     // Start is called before the first frame update
-    void Start() {
+    public void RefreshAuth() {
       if (string.IsNullOrEmpty(State.RefreshToken) || State.User == null) {
         Controller.SelectPanel(SelectedPanel.Login);
       } else {
