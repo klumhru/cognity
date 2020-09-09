@@ -21,6 +21,8 @@ func (h *Handler) Handle(ctx context.Context, evt *event.Event) error {
 
 	buf, err := json.Marshal(evt)
 	if err != nil {
+		// This is pretty hard to induce, can't think of a situation where
+		// this error will occur, but handling it in any case
 		return fmt.Errorf("error marshalling evt: %v", err)
 	}
 	in := &sqs.SendMessageInput{
