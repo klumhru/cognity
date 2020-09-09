@@ -10,17 +10,20 @@ type option struct {
 	desc string
 }
 
+type logging struct {
+	Level string `long:"log-level" env:"LOG_LEVEL" default:"warn"`
+}
+
 var (
 	registry = map[option]interface{}{}
-	logging  = struct {
-		Level string `long:"log-level" env:"LOG_LEVEL"`
-	}{}
+	// Logging options
+	Logging = logging{}
 )
 
 // Init initializes option groups
 func Init(codes ...string) {
 
-	parser := flags.NewParser(&logging, flags.Default|flags.IgnoreUnknown)
+	parser := flags.NewParser(&Logging, flags.Default|flags.IgnoreUnknown)
 	for _, code := range codes {
 		for k, v := range registry {
 			if k.code == code {
@@ -31,9 +34,9 @@ func Init(codes ...string) {
 	if _, err := parser.Parse(); err != nil {
 		log.Errorf("error parsing options: %v", err)
 	}
-	lvl, err := log.ParseLevel(logging.Level)
+	lvl, err := log.ParseLevel(Logging.Level)
 	if err != nil {
-		log.Errorf("error parsing log level %s: %v", logging.Level, err)
+		log.Errorf("error parsing log level %s: %v", Logging.Level, err)
 	}
 	log.SetLevel(lvl)
 }
