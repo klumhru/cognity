@@ -17,7 +17,7 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v2
-      
+
       - name: Setup Go
         uses: actions/setup-go@v2.1.2
         with:
@@ -27,10 +27,10 @@ jobs:
         run: go test ./...
 
       - name: Build
-        run: go build -o sqs-forward sqs-forward/main.go
+        run: go build -o build/sqs-forward sqs-forward/main.go
 
       - name: Package
-        run: zip sqs-forward.zip sqs-forward
+        run: zip -jD sqs-forward.zip build/sqs-forward
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -42,28 +42,28 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
     needs: [lambdas]
-    
+
     defaults:
       run:
         shell: bash
         working-directory: Backend
-        
+
     steps:
-    
+
     - name: Checkout
       uses: actions/checkout@v2
-    
+
     - uses: actions/download-artifact@v2
       with:
         name: sqs-forward
-    
+
     - name: AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-    
+
     - name: Setup
       uses: hashicorp/setup-terraform@v1
 
