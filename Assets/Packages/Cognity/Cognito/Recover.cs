@@ -5,6 +5,8 @@ using Amazon.CognitoIdentityProvider.Model;
 using UnityEngine;
 
 namespace Cognity.Cognito {
+
+  // Simple container to pass information over threads
   public struct RecoverResult {
     public enum RecoverStatus {
       Confirm,
@@ -16,12 +18,13 @@ namespace Cognity.Cognito {
     public string ErrorMessage;
     public string Username;
   }
-  public class Recover : AWSReactiveBehaviour<RecoverResult> {
-    public State State;
-    public override void Awake() {
-      base.Awake();
-    }
 
+  // Logic to recover password, by resetting the password
+  public class Recover : ObservableBehaviour<RecoverResult> {
+    public State State;
+
+    // Start the password recovery process, which sends an email with a code
+    // that is entered using the `Confirm` method
     public async void RecoverPassword(string username) {
       try {
         State.SetUser(username);
@@ -39,7 +42,8 @@ namespace Cognity.Cognito {
       }
     }
 
-    internal async void Confirm(string code, string password) {
+    // Set a new password for a user, using a code to authorize the password change
+    public async void Confirm(string code, string password) {
       try {
         await State.User.ConfirmForgotPasswordAsync(code, password).ConfigureAwait(false);
         EnqueueMessage(new RecoverResult {

@@ -9,6 +9,7 @@ using Amazon.CognitoIdentity;
 
 namespace Cognity.Cognito {
 
+  // A simple container to pass result to observers
   public struct LoginResult {
     public enum LoginStatus {
       Success,
@@ -25,15 +26,9 @@ namespace Cognity.Cognito {
     internal CognitoAWSCredentials Credentials;
   }
 
-  public class Login : AWSReactiveBehaviour<LoginResult> {
+  // Authentication manager
+  public class Login : ObservableBehaviour<LoginResult> {
     public State State;
-    // Start is called before the first frame update
-    void Start() {
-    }
-
-    private void OnResult(AuthFlowResponse res) {
-      Debug.Log(res.ToString());
-    }
 
     public async void Authenticate(string username, string password) {
       State.SetUser(username);

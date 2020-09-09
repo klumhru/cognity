@@ -6,6 +6,8 @@ using Amazon.Extensions.CognitoAuthentication;
 using UnityEngine;
 
 namespace Cognity.Cognito {
+
+  // Simple container to pass information over threads
   public struct RefreshResult {
     public enum RefreshStatus {
       Success,
@@ -16,14 +18,11 @@ namespace Cognity.Cognito {
     public AuthFlowResponse Response;
     public RefreshStatus Status;
   }
-  public class Refresh : AWSReactiveBehaviour<RefreshResult> {
+  public class Refresh : ObservableBehaviour<RefreshResult> {
     public State State;
     public Login Login;
 
-    public override void Awake() {
-      base.Awake();
-    }
-
+    // Refresh the authentication tokens (JWT), using the stored refresh token
     public async void RefreshAsync(string refreshToken) {
       var request = new InitiateRefreshTokenAuthRequest {
         AuthFlowType = AuthFlowType.REFRESH_TOKEN

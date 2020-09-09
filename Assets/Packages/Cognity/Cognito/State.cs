@@ -8,6 +8,9 @@ using Amazon.Extensions.CognitoAuthentication;
 using UnityEngine;
 
 namespace Cognity.Cognito {
+
+  // This behaviour contains the global state of authentication
+  // It can be used to retreive tokens
   public class State : MonoBehaviour,
                        IObserver<LoginResult>,
                        IObserver<RefreshResult>,

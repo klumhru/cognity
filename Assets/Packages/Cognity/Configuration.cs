@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Cognity {
+  // Simple Configuration manager, using JSON configuration with a small reducer
+  // to collapse extra `value` keys from terraform output
   public class Configuration : MonoBehaviour {
     public TextAsset ConfigurationFile;
     public static ParsedConfiguration Current;

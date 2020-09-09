@@ -5,7 +5,12 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace Cognity {
-  public class AWSReactiveBehaviour<T> : MonoBehaviour, IObservable<T> {
+
+  // Simple extension of the MonoBehaviour class that implements IObservable
+  // Lifted straight from https://docs.microsoft.com/en-us/dotnet/standard/events/observer-design-pattern
+  // Uses ConcurrentQueue to contain the off-ui-thread queue of events that are picked up
+  // on Update to push UI changes
+  public class ObservableBehaviour<T> : MonoBehaviour, IObservable<T> {
     private List<IObserver<T>> observers;
     private ConcurrentQueue<T> _queue;
     private T _next;

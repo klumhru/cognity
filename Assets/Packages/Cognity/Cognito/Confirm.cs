@@ -1,6 +1,8 @@
 ﻿using System;
 
 namespace Cognity.Cognito {
+
+  // A simple container to pass result to observers
   public struct ConfirmResult {
     public enum ConfirmStatus {
       Success,
@@ -12,13 +14,12 @@ namespace Cognity.Cognito {
     public Exception InnerException;
     public string Username;
   }
-  public class Confirm : AWSReactiveBehaviour<ConfirmResult> {
+
+  // Registration confirmation logic
+  public class Confirm : ObservableBehaviour<ConfirmResult> {
     public State State;
 
-    public override void Awake() {
-      base.Awake();
-    }
-
+    // Confirm registration for a user with a code from the generic email
     public void ConfirmCode(string username, string code) {
       State.SetUser(username);
       try {
@@ -37,6 +38,7 @@ namespace Cognity.Cognito {
       }
     }
 
+    // Create and send a new confirmation code for a user
     internal async void ResendConfirmCode(string username) {
       State.SetUser(username);
       try {

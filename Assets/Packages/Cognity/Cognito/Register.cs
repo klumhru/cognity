@@ -6,6 +6,7 @@ using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime.Internal;
 
 namespace Cognity.Cognito {
+  // Simple container to pass information over threads
   public struct RegistrationResult {
     public enum RegistrationStatus {
       Error,
@@ -18,15 +19,10 @@ namespace Cognity.Cognito {
     public string Password;
     internal Dictionary<string, string> Attributes;
   }
-  public class Register : AWSReactiveBehaviour<RegistrationResult> {
-    public State State;
-    public override void Awake() {
-      base.Awake();
-    }
 
-    // Start is called before the first frame update
-    void Start() {
-    }
+  // Registration logic
+  public class Register : ObservableBehaviour<RegistrationResult> {
+    public State State;
 
     public async void SignUp(string username, string password, Dictionary<string, string> attributes) {
       try {
