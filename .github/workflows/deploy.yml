@@ -59,6 +59,11 @@ jobs:
       with:
         name: sqs-forward
 
+    - name: Debug
+      run: |
+        pwd
+        ls -laR
+
     - name: Package lambda
       run: zip -jD sqs-forward.zip sqs-forward
 
