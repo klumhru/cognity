@@ -28,8 +28,8 @@ jobs:
 
       - name: Build
         run: |
-          mkdir -p build
-          go build -o build/sqs-forward sqs-forward/main.go
+          mkdir -p /tmp/build
+          go build -o /tmp/build/sqs-forward sqs-forward/main.go
 
       - name: Debug
         run: ls -laR
@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: sqs-forward
-          path: build/sqs-forward
+          path: /tmp/build/sqs-forward
 
   backend:
     name: 'Terraform'
