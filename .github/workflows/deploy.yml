@@ -27,16 +27,18 @@ jobs:
         run: go test ./...
 
       - name: Build
-        run: go build -o build/sqs-forward sqs-forward/main.go
+        run: |
+          mkdir -p build
+          go build -o build/sqs-forward sqs-forward/main.go
 
-      - name: Package
-        run: zip -jD sqs-forward.zip build/sqs-forward
+      - name: Debug
+        run: ls -laR
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: sqs-forward
-          path: sqs-forward.zip
+          path: build/sqs-forward
 
   backend:
     name: 'Terraform'
@@ -56,6 +58,12 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: sqs-forward
+
+    - name: Package lambda
+      run: zip -jD sqs-forward.zip sqs-forward
+
+    - name: List files
+      run: ls -laR
 
     - name: AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
