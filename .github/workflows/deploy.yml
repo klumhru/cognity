@@ -98,7 +98,9 @@ jobs:
 
     - name: Terraform Output
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-      run: terraform output -json > /tmp/build/cognity.json
+      run: |
+        mkdir -p /tmp/build
+        terraform output -json > /tmp/build/cognity.json
 
     - name: Upload Configuration
       uses: actions/upload-artifact@v2
