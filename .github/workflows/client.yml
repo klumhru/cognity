@@ -12,12 +12,15 @@ jobs:
         unityVersion:
           - 2020.1.4f1
         targetPlatform:
-          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-          - StandaloneWindows64 # Build a Windows 64-bit standalone.
-          - StandaloneLinux64 # Build a Linux 64-bit standalone.
-          - Android # Build an Android .apk standalone app.
+          - StandaloneOSX
+          - StandaloneWindows64
+          - StandaloneLinux64
+          - Android
 
-      - uses: actions/checkout@v2
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           lfs: true
 
