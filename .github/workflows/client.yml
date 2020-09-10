@@ -1,0 +1,45 @@
+name: 'Client Build'
+on:
+  release:
+    types: [published]
+jobs:
+  Standalone:
+    name: Build for ${{ matrix.targetPlatform }} on version ${{ matrix.unityVersion }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        unityVersion:
+          - 2020.1.4f1
+        targetPlatform:
+          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          - Android # Build an Android .apk standalone app.
+
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Cache
+        uses: actions/cache@v1.1.0
+        with:
+          path: path/to/your/project/Library
+          key: Library-MyProjectName-TargetPlatform
+          restore-keys: |
+            Library-MyProjectName-
+            Library-
+
+      - name: Build
+        uses: webbertakken/unity-builder@v1.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+          versioning: Semantic
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: Build
+          path: build
