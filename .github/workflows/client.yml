@@ -1,21 +1,24 @@
 name: 'Client Build'
 on:
   release:
-    types: [published]
+    types:
+      - published
+      - released
 jobs:
   Standalone:
     name: Build for ${{ matrix.targetPlatform }} on version ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         unityVersion:
           - 2020.1.4f1
         targetPlatform:
-          - StandaloneOSX
-          - StandaloneWindows64
+          # - StandaloneOSX
+          # - StandaloneWindows64
           - StandaloneLinux64
-          - Android
+          # - Android
 
     steps:
 
@@ -23,6 +26,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           lfs: true
+
+      - name: Fetch configuration
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          version: tags/${{ env.GITHUB_REF }}
+          file: cognito.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Place configuration
+        run: mv cognito.json Assets/cognito.json
 
       - name: Cache
         uses: actions/cache@v1.1.0
